@@ -39,9 +39,13 @@
         
         .nexus-window { display: none; position: absolute; bottom: 110px; right: 0; width: 400px; height: 600px; max-height: calc(100vh - 200px); background: #ffffff; border-radius: 24px; box-shadow: 0 20px 50px rgba(0,0,0,0.15); overflow: hidden; flex-direction: column; transform-origin: bottom right; transform: scale(0.9) translateY(20px); opacity: 0; transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); z-index: 20; }
         .nexus-window.open { display: flex; transform: scale(1) translateY(0); opacity: 1; border: 1px solid rgba(0,0,0,0.05); }
+        .nexus-window.full-screen { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; max-height: 100vh; border-radius: 0; bottom: 0; right: 0; transform: none; z-index: 999999; }
         
-        .nexus-header { background: var(--nexus-theme); color: white; padding: 24px; text-align: left; display: flex; align-items: center; gap: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); z-index: 10; }
+        .nexus-header { background: var(--nexus-theme); color: white; padding: 24px; text-align: left; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 4px 12px rgba(0,0,0,0.1); z-index: 10; }
         .nexus-header h3 { margin: 0; font-size: 18px; font-weight: 700; letter-spacing: -0.01em; }
+        .nexus-header-left { display: flex; align-items: center; gap: 12px; }
+        .nexus-header-btn { background: rgba(255,255,255,0.15); border: none; width: 32px; height: 32px; border-radius: 8px; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
+        .nexus-header-btn:hover { background: rgba(255,255,255,0.25); transform: scale(1.05); }
         
         .nexus-chat { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 16px; background: #f8f9fa; scroll-behavior: smooth; }
         
@@ -91,10 +95,15 @@
     root.innerHTML = `
       <div class="nexus-window" id="nexus-window">
         <div class="nexus-header">
-          <div style="width:32px;height:32px;background:rgba(255,255,255,0.2);border-radius:10px;display:flex;align-items:center;justify-content:center;">
-            <svg viewBox="0 0 24 24" style="width:20px;height:20px;fill:white"><path d="M20 2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14l4 4V4c0-1.1-.9-2-2-2z"/></svg>
+          <div class="nexus-header-left">
+            <div style="width:32px;height:32px;background:rgba(255,255,255,0.2);border-radius:10px;display:flex;align-items:center;justify-content:center;">
+              <svg viewBox="0 0 24 24" style="width:20px;height:20px;fill:white"><path d="M20 2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14l4 4V4c0-1.1-.9-2-2-2z"/></svg>
+            </div>
+            <h3>${state.config.name}</h3>
           </div>
-          <h3>${state.config.name}</h3>
+          <button class="nexus-header-btn" id="nexus-zoom" title="Toggle Full Screen">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="white"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></svg>
+          </button>
         </div>
         <div class="nexus-chat" id="nexus-chat">
           <div class="nexus-msg bot">Hi there! How can I help you today?</div>
@@ -121,13 +130,39 @@
     const chatEl = document.getElementById('nexus-chat');
     const thinkingEl = document.getElementById('nexus-thinking');
     const sendBtn = document.getElementById('nexus-send');
+    const zoomBtn = document.getElementById('nexus-zoom');
 
     const iconMsg = '<svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/></svg>';
     const iconClose = '<svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>';
+    const iconZoomIn = '<svg viewBox="0 0 24 24" width="18" height="18" fill="white"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></svg>';
+    const iconZoomOut = '<svg viewBox="0 0 24 24" width="18" height="18" fill="white"><path d="M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z"/></svg>';
+
+    let isFullScreen = false;
+
+    zoomBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      isFullScreen = !isFullScreen;
+      windowEl.classList.toggle('full-screen', isFullScreen);
+      document.body.style.overflow = isFullScreen ? 'hidden' : ''; // Disable background scroll
+      zoomBtn.innerHTML = isFullScreen ? iconZoomOut : iconZoomIn;
+      chatEl.scrollTop = chatEl.scrollHeight;
+      if (isFullScreen) {
+        inputEl.focus();
+      }
+    });
 
     toggleBtn.addEventListener('click', () => {
       state.isOpen = !state.isOpen;
       windowEl.classList.toggle('open', state.isOpen);
+      
+      // If closing while in full screen, reset full screen state and body scroll
+      if (!state.isOpen && isFullScreen) {
+        isFullScreen = false;
+        windowEl.classList.remove('full-screen');
+        document.body.style.overflow = '';
+        zoomBtn.innerHTML = iconZoomIn;
+      }
+      
       toggleBtn.innerHTML = state.isOpen ? iconClose : iconMsg;
       if (state.isOpen) {
         inputEl.focus();
