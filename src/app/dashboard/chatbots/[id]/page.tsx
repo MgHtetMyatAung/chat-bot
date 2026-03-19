@@ -175,7 +175,7 @@ export default function ChatbotSettingsPage({ params }: { params: Promise<{ id: 
           </div>
           
           <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="text-sm font-medium text-zinc-300 mb-1.5 block">Model ID</label>
                 <input 

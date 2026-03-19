@@ -47,14 +47,14 @@ export async function POST(req: Request) {
     
     let chatbotId: string;
     let title: string;
-    let type: 'TEXT' | 'LINK' | 'PDF';
+    let type: 'TEXT' | 'LINK' | 'PDF' | 'CRAWL';
     let content: string = '';
 
     if (contentType.includes('multipart/form-data')) {
       const formData = await req.formData();
       chatbotId = formData.get('chatbotId') as string;
       title = formData.get('title') as string;
-      type = formData.get('type') as 'TEXT' | 'LINK' | 'PDF';
+      type = formData.get('type') as 'TEXT' | 'LINK' | 'PDF' | 'CRAWL';
       
       const file = formData.get('file') as File;
       if (file && type === 'PDF') {
@@ -83,35 +83,30 @@ export async function POST(req: Request) {
       title = json.title;
       type = json.type;
       content = json.content || '';
+    }
 
-      if (type === 'LINK') {
-        // Dynamic imports for scraping utilities
-        const axios = (await import('axios')).default;
-        const cheerio = await import('cheerio');
-        
-        try {
-          const { data } = await axios.get(content, {
-            headers: {
-              'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-              'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8'
-            },
-            timeout: 15000
-          });
-          const $ = cheerio.load(data);
-          
-          // Remove noise
-          $('script, style, nav, footer, iframe, aside, .cookie-banner, #footer').remove();
-          
-          // Focus on main content if possible
-          const mainContent = $('main, article, #content, .content').length > 0 
-            ? $('main, article, #content, .content').first().text()
-            : $('body').text();
-            
-          content = mainContent.replace(/\s+/g, ' ').trim().slice(0, 30000);
-        } catch (scrapErr: any) {
-          console.error('Scraping error:', scrapErr);
-          throw new Error('Failed to scrape content from URL: ' + scrapErr.message);
+    if (type === 'LINK' || type === 'CRAWL') {
+      const axios = (await import('axios')).default;
+      
+      try {
+        console.log(`[Scraper] Using Jina Reader for: ${content}`);
+        const { data } = await axios.get(`https://r.jina.ai/${content}`, {
+          headers: {
+            'X-Return-Format': 'markdown', // markdown is very AI-friendly
+          },
+          timeout: 30000,
+        });
+
+        if (typeof data === 'string') {
+          content = data.trim().slice(0, 50000);
+        } else {
+          content = JSON.stringify(data).slice(0, 50000);
         }
+        
+        console.log(`[Scraper] Extracted ${content.length} characters.`);
+      } catch (scrapErr: any) {
+        console.error('Jina Scraping error:', scrapErr);
+        throw new Error('Failed to scrape content from URL: ' + (scrapErr.response?.data?.error || scrapErr.message));
       }
     }
 
@@ -128,7 +123,7 @@ export async function POST(req: Request) {
         chatbotId,
         title,
         content: content || '',
-        type,
+        type: type as any,
       }
     });
 

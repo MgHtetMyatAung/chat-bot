@@ -40,23 +40,19 @@ export async function POST(req: Request) {
     // Build a structured knowledge context block
     let knowledgeContext = '';
     if (knowledgeBase.length > 0) {
-      const entries = knowledgeBase.map((kb: any) => {
-        return `[DOCUMENT: ${kb.title}]\nType: ${kb.type}\nContent: ${kb.content}\n`;
+      const entries = knowledgeBase.map((kb: any, index: number) => {
+        return `DOCUMENT ${index + 1}: ${kb.title} (Type: ${kb.type})\n---\n${kb.content}\n---`;
       });
       
       knowledgeContext = `
-=== SYSTEM INSTRUCTIONS: KNOWLEDGE BASE INTEGRATION ===
-You have access to a specific Knowledge Base provided below. 
-Rules:
-1. Always prioritize information from the Knowledge Base over your general training data.
-2. If the user's question relates to the Knowledge Base, use that information to answer.
-3. If the Knowledge Base contains the answer, try to be specific and helpful.
-4. If the question CANNOT be answered using the Knowledge Base (and it's a customer support context), politely inform the user that you don't have that specific information and offer general assistance or suggest they contact support.
-5. Do not mention "The Knowledge Base" to the user; just answer naturally as if you know this information.
+# KNOWLEDGE BASE CONTEXT
+Use the following documentation to help answer user questions. 
+If the information is in the context, use it to provide a helpful answer.
+If the context doesn't explicitly answer the question, try to provide a general helpful answer but state that you don't have the specific details if necessary.
 
-=== START KNOWLEDGE BASE ===
+---
 ${entries.join('\n\n')}
-=== END KNOWLEDGE BASE ===
+---
 `;
     }
 
