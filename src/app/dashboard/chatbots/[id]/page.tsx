@@ -3,7 +3,7 @@
 import { prisma } from '@/lib/prisma';
 import { notFound, useRouter } from 'next/navigation';
 import { useState, useEffect, use } from 'react';
-import { Save, Loader2, Trash2, ArrowLeft, Bot, Globe } from 'lucide-react';
+import { Save, Loader2, Trash2, ArrowLeft, Bot, Globe, Settings } from 'lucide-react';
 import toast from 'react-hot-toast';
 import Link from 'next/link';
 
@@ -25,27 +25,28 @@ export default function ChatbotSettingsPage({ params }: { params: Promise<{ id: 
   const [modelId, setModelId] = useState('');
   const [systemPrompt, setSystemPrompt] = useState('');
   const [theme, setTheme] = useState('#3b82f6');
+  const [responseMode, setResponseMode] = useState('STRICT');
 
   useEffect(() => {
     async function fetchChatbot() {
       try {
-        const res = await fetch(`/api/chatbots`);
-        if (!res.ok) throw new Error();
-        const chatbots = await res.json();
-        const found = chatbots.find((c: any) => c.id === id);
-        
-        if (!found) {
-          toast.error('Chatbot not found');
-          router.push('/dashboard/chatbots');
-          return;
+        const res = await fetch(`/api/chatbots/${id}`);
+        if (!res.ok) {
+          if (res.status === 404) {
+            toast.error('Chatbot not found');
+            router.push('/dashboard/chatbots');
+          }
+          throw new Error('Failed to fetch');
         }
-
+        const found = await res.json();
+        
         setChatbot(found);
         setName(found.name);
         setSiteUrl(found.siteUrl);
         setModelId(found.modelId);
         setSystemPrompt(found.systemPrompt);
         setTheme(found.theme || '#3b82f6');
+        setResponseMode(found.responseMode || 'GENERAL');
       } catch (err) {
         console.error(err);
         toast.error('Failed to load chatbot settings');
@@ -61,7 +62,7 @@ export default function ChatbotSettingsPage({ params }: { params: Promise<{ id: 
     try {
       const body = type === 'general' 
         ? { name, siteUrl }
-        : { modelId, systemPrompt, theme };
+        : { modelId, systemPrompt, theme, responseMode };
 
       const res = await fetch(`/api/chatbots/${id}`, {
         method: 'PATCH',
@@ -71,6 +72,8 @@ export default function ChatbotSettingsPage({ params }: { params: Promise<{ id: 
 
       if (!res.ok) throw new Error('Failed to update');
       
+      const updated = await res.json();
+      setChatbot(updated);
       toast.success('Settings updated successfully');
       router.refresh();
     } catch (err) {
@@ -204,6 +207,33 @@ export default function ChatbotSettingsPage({ params }: { params: Promise<{ id: 
                 </div>
               </div>
             </div>
+            
+            <div className="bg-zinc-900/50 p-4 rounded-xl border border-white/5">
+              <label className="text-sm font-medium text-zinc-300 mb-2 block flex items-center gap-2">
+                Response Strategy 
+                <span className="text-[10px] bg-zinc-800 text-zinc-400 px-1.5 py-0.5 rounded uppercase tracking-wider">Behavior</span>
+              </label>
+              <div className="flex gap-2">
+                <button 
+                  onClick={() => setResponseMode('GENERAL')}
+                  className={`flex-1 py-2 text-xs font-semibold rounded-lg transition-all ${responseMode === 'GENERAL' ? 'bg-purple-600 text-white shadow-lg shadow-purple-500/20' : 'bg-zinc-900 text-zinc-500 hover:text-zinc-300'}`}
+                >
+                  General Mode
+                </button>
+                <button 
+                  onClick={() => setResponseMode('STRICT')}
+                  className={`flex-1 py-2 text-xs font-semibold rounded-lg transition-all ${responseMode === 'STRICT' ? 'bg-red-600 text-white shadow-lg shadow-red-500/20' : 'bg-zinc-900 text-zinc-500 hover:text-zinc-300'}`}
+                >
+                  Strict (Only KB)
+                </button>
+              </div>
+              <p className="mt-2 text-[10px] text-zinc-500 leading-relaxed italic">
+                {responseMode === 'STRICT' 
+                  ? "Bot will ONLY answer using your knowledge base. It will refuse unrelated general questions." 
+                  : "Bot will use your knowledge base first, but can also answer general questions helpful for users."}
+              </p>
+            </div>
+
             <div>
               <label className="text-sm font-medium text-zinc-300 mb-1.5 block">System Prompt</label>
               <textarea 
@@ -246,6 +276,4 @@ export default function ChatbotSettingsPage({ params }: { params: Promise<{ id: 
     </div>
   );
 }
-
-import { Settings } from 'lucide-react';
 

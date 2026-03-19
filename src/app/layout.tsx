@@ -6,7 +6,7 @@ import { Toaster } from 'react-hot-toast';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'Nexus AI - Chatbot Management',
+  title: 'May Myan AI - Chatbot Management',
   description: 'Manage multiple multi-tenant AI chatbots for your websites',
 };
 

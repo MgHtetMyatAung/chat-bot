@@ -62,7 +62,7 @@ export default function LoginPage() {
             <Bot size={32} className="text-white" />
           </div>
           <h1 className="text-3xl font-bold tracking-tight text-white bg-clip-text text-transparent bg-gradient-to-b from-white to-white/70">
-            Nexus AI Admin
+            May Myan AI Admin
           </h1>
           <p className="text-zinc-400 mt-2 text-sm max-w-sm">
             Sign in to manage your multi-tenant support chatbots.

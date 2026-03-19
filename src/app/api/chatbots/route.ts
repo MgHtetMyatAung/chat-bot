@@ -12,7 +12,13 @@ export async function GET(req: Request) {
       orderBy: { createdAt: 'desc' }
     });
 
-    return NextResponse.json(chatbots);
+    // Security: Filter out API keys from list view
+    const safeChatbots = chatbots.map(cb => ({
+        ...cb,
+        apiKey: undefined // Don't expose secret in list
+    }));
+
+    return NextResponse.json(safeChatbots);
   } catch (error) {
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }

@@ -12,10 +12,14 @@ export default function WidgetPage({ params }: { params: Promise<{ id: string }>
 
   useEffect(() => {
     async function fetchChatbot() {
-      const res = await fetch(`/api/chatbots`);
-      const chatbots = await res.json();
-      const found = chatbots.find((c: any) => c.id === id);
-      setChatbot(found);
+      try {
+        const res = await fetch(`/api/chatbots/${id}`);
+        if (!res.ok) throw new Error('Failed to fetch');
+        const found = await res.json();
+        setChatbot(found);
+      } catch (err) {
+        console.error(err);
+      }
     }
     fetchChatbot();
   }, [id]);

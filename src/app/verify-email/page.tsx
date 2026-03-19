@@ -81,7 +81,7 @@ export default function VerifyEmailPage() {
                     <div className="bg-zinc-900/50 rounded-2xl p-4 flex items-start gap-3 text-left border border-white/5">
                         <CheckCircle2 size={18} className="text-green-500 shrink-0 mt-0.5" />
                         <p className="text-xs text-zinc-500 leading-relaxed">
-                            Once verified, you'll gain full access to the Nexus AI Dashboard and your chatbots.
+                            Once verified, you'll gain full access to the May Myan AI Dashboard and your chatbots.
                         </p>
                     </div>
                 </div>

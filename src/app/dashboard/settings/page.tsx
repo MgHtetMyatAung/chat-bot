@@ -88,7 +88,7 @@ export default function SettingsPage() {
                         <div className="space-y-1">
                             <h3 className="text-white font-bold">Profile Details</h3>
                             <p className="text-xs text-zinc-500 leading-relaxed">
-                                Your personal information is used to personalize your experience across Nexus AI.
+                                Your personal information is used to personalize your experience across May Myan AI.
                             </p>
                         </div>
                     </div>

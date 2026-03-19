@@ -81,11 +81,17 @@ model Chatbot {
   modelId      String   @default("openai/gpt-4o-mini") // e.g. from OpenRouter
   theme        String   @default("#000000")
   apiKey       String   @unique @default(uuid())
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  responseMode ResponseMode @default(STRICT)
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
 
-  knowledge   KnowledgeBase[]
+  knowledge     KnowledgeBase[]
   conversations Conversation[]
+}
+
+enum ResponseMode {
+  STRICT
+  GENERAL
 }
 
 enum KnowledgeType {

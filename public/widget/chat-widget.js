@@ -4,7 +4,7 @@
   const apiUrl = currentScript.getAttribute('data-api-url') || (window.location.host === 'localhost:3000' || window.location.host === '127.0.0.1:3000' ? (window.location.origin + '/api') : 'http://localhost:3000/api');
 
   if (!apiKey) {
-    console.error('Nexus AI Widget: Missing data-chatbot-key');
+    console.error('May Myan AI Widget: Missing data-chatbot-key');
     return;
   }
 
@@ -21,7 +21,7 @@
       state.config = await res.json();
       render();
     } catch (e) {
-      console.error('Nexus AI Widget Error:', e);
+      console.error('May Myan AI Widget Error:', e);
     }
   }
 
@@ -209,7 +209,7 @@
           const chunk = decoder.decode(value, { stream: true });
           
           botText += chunk;
-          msgDiv.innerText = botText;
+          msgDiv.innerHTML = formatMarkdown(botText);
           chatEl.scrollTop = chatEl.scrollHeight;
         }
 
@@ -227,9 +227,36 @@
     function addMessage(text, role) {
       const msgDiv = document.createElement('div');
       msgDiv.className = `nexus-msg ${role}`;
-      msgDiv.innerText = text;
+      msgDiv.innerHTML = formatMarkdown(text);
       chatEl.appendChild(msgDiv);
       chatEl.scrollTop = chatEl.scrollHeight;
+    }
+
+    function formatMarkdown(text) {
+      if (!text) return '';
+      
+      // Simple safety escaping
+      let html = text
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+
+      // Handle Images: ![alt](url)
+      html = html.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1" style="max-width:100%; border-radius:12px; margin: 12px 0; display:block; border: 1px solid rgba(0,0,0,0.05); shadow: 0 4px 12px rgba(0,0,0,0.05);">');
+
+      // Handle Links: [text](url)
+      html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer" style="color:var(--nexus-theme); text-decoration:underline; font-weight:600;">$1</a>');
+
+      // Handle Bold: **text**
+      html = html.replace(/\*\*([^\*]+)\*\*/g, '<strong>$1</strong>');
+
+      // Handle Code: `text`
+      html = html.replace(/`([^`]+)`/g, '<code style="background:rgba(0,0,0,0.05); padding: 2px 4px; border-radius: 4px; font-family: monospace;">$1</code>');
+
+      // Handle Newlines
+      html = html.replace(/\n/g, '<br>');
+
+      return html;
     }
   }
 

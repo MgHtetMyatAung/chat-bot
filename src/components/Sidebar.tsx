@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from 'react';
-import { Bot, Home, MessageSquare, LogOut, Settings, Menu, X } from 'lucide-react';
+import { Bot, Home, MessageSquare, LogOut, Settings, Menu, X, Globe } from 'lucide-react';
 import Link from 'next/link';
 import { signOut } from '@/lib/auth-client';
 import { useRouter, usePathname } from 'next/navigation';
@@ -51,7 +51,7 @@ export default function Sidebar() {
           <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-lg shadow-blue-500/20">
             <Bot size={20} className="text-white" />
           </div>
-          <span className="font-bold text-lg tracking-wide text-white">Nexus AI</span>
+          <span className="font-bold text-lg tracking-wide text-white">May Myan AI</span>
         </div>
 
         <nav className="flex-1 px-4 space-y-1.5 mt-4">
